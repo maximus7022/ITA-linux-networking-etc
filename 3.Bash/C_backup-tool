@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Checking if both arguments provided
+if [ $# -ne 2 ]; then
+	echo "Usage: $0 <source_directory> <backup_directory>"
+	exit 1
+fi
+
+# Geting args
+sync_dir=$1
+backup_dir=$2
+
+# Creating the log file
+log_file="/tmp/backup.log"
+
+# Creating backup directory if it doesn't exist
+if [ ! -d "$backup_dir" ]; then
+	mkdir -p "$backup_dir"
+fi
+
+# Creating log file if it doesn't exist
+if [ ! -f "$log_file" ]; then
+	touch "$log_file"
+fi
+
+# Geting the current time
+now=$(date +"%Y-%m-%d %H:%M:%S")
+
+# Getting the list of files in the syncing directory
+sync_files=$(ls "$sync_dir")
+
+for file in $sync_files; do
+	# Checking if the file exists in the backup directory
+	if [ ! -f "$backup_dir/$file" ]; then
+		# The file does not exist, so copying it to the backup directory
+		echo "Copying $sync_dir/$file to $backup_dir/ ..."
+		cp "$sync_dir/$file" "$backup_dir/$file"
+		# Adding an entry to the log file
+		echo "$now - Added $file" >> "$log_file"
+	fi
+done
+
+# Checking if there are any files in the backup directory that are not in the sync directory
+for file in $(ls "$backup_dir"); do
+	# The file is not in the syncing directory, so deleting it
+	if ! echo "$sync_files" | grep -q "$file"; then
+		echo "Deleting $backup_dir/$file ..."
+		rm "$backup_dir/$file"
+		# Adding an entry to the log file
+		echo "$now - Deleted $file" >> "$log_file"
+	fi
+done
+
+echo "File syncing finished successfully."

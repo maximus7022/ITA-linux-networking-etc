@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  flask-app:
+    build:
+      context: ./
+    image: flask-app-img
+    container_name: flask-app
+    restart: always
+    ports:
+      - 8888:5000
